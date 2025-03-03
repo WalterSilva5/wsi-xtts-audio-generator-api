@@ -9,7 +9,7 @@ class AppMiddlewares:
     def apply_cors_middlewares(self, app):
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=settings.allowed_hosts,
+            allow_origins=["*"],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],

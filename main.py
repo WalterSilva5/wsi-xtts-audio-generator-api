@@ -11,10 +11,9 @@ from src.items.router import router as items_router
 
 
 app = FastAPI(
-    title=settings.app_name,
+    title="Advanced FastAPI Application",
     description="A sophisticated FastAPI application with advanced configurations",
-    version=settings.api_version,
-    docs_url="/docs",
+    version="0.1.0",    docs_url="/docs",
     redoc_url="/redoc"
 )
 
@@ -25,7 +24,7 @@ app_middlewares.apply_exception_handlers(app)
 # Routes
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to the API", "version": settings.api_version}
+    return {"message": "Welcome to the API", "version": "0.1.0",}
 
 @app.get("/ping")
 async def ping():
@@ -36,7 +35,7 @@ async def get_status():
     return {
         "status": "operational",
         "timestamp": datetime.now().isoformat(),
-        "debug_mode": settings.debug_mode
+        "debug_mode": True
     }
 
 @app.on_event("startup")
@@ -55,6 +54,6 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.debug_mode,
+        reload=True,
         workers=1
     )
