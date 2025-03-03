@@ -1,14 +1,14 @@
 import os
 import subprocess
 import sys
-import requests
+import requests# type: ignore
 
 import importlib.metadata as metadata  # Use importlib.metadata
 from pathlib import Path
-from tqdm import tqdm
+from tqdm import tqdm# type: ignore
 
 from packaging import version
-from loguru import logger
+from loguru import logger# type: ignore
 
 
 def install_package(package_link):
@@ -188,19 +188,16 @@ def download_model(this_dir, model_version):
         "speakers_xtts.pth": f"https://huggingface.co/coqui/XTTS-v2/resolve/main/speakers_xtts.pth?download=true"
     }
 
-    # Check and create directories
     create_directory_if_not_exists(base_path)
     create_directory_if_not_exists(model_path)
 
-    # Download files if they don't exist
     for filename, url in files_to_download.items():
         destination = model_path / filename
         if not destination.exists():
             print(f"[XTTS] Downloading {filename}...")
             download_file(url, destination)
 
-
 if __name__ == "__main__":
-    #    this_dir = Path(__file__).parent.resolve()
-    #    main_downloader(this_dir)
+    root_dir = Path(__file__).parent.parent.resolve()
+    download_model(root_dir, "v2.0.3")
     install_deepspeed_based_on_python_version()
