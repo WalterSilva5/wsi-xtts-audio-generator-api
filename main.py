@@ -4,6 +4,7 @@ from datetime import datetime
 from settings.settings import Settings
 from src.middleware.app_middlewares import AppMiddlewares
 from src.logging.service import logger
+from src.model.instance.service import ModelInstance
 
 settings = Settings()
 app_middlewares = AppMiddlewares()
@@ -41,7 +42,11 @@ async def get_status():
 @app.on_event("startup")
 async def startup_event():
     logger.info("Application startup...")
-    
+    model = ModelInstance()
+    model.load_model()
+
+    logger.info("Model loaded successfully")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Application shutdown...")
