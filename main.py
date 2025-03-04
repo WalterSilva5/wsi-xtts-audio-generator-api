@@ -8,7 +8,10 @@ from src.model.instance.service import Model
 
 from src.items.router import router as items_router
 from src.tts.router import router as tts_router
-
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget
+import sys
+import threading
+import requests
 
 
 app_middlewares = AppMiddlewares()
@@ -58,12 +61,58 @@ app.include_router(items_router, prefix="/api")
 app.include_router(tts_router, prefix="/api")
 
 
-# Run the application
+def run_api():
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
+
+# Interface Gráfica com PySide6
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("FastAPI + PySide6")
+        self.setGeometry(100, 100, 400, 300)
+        
+        layout = QVBoxLayout()
+        
+        self.label = QLabel("Status: Desconhecido", self)
+        layout.addWidget(self.label)
+        
+        self.ping_button = QPushButton("Ping API", self)
+        self.ping_button.clicked.connect(self.ping_api)
+        layout.addWidget(self.ping_button)
+        
+        self.status_button = QPushButton("Obter Status", self)
+        self.status_button.clicked.connect(self.get_status)
+        layout.addWidget(self.status_button)
+        
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+    def ping_api(self):
+        try:
+            response = requests.get("http://127.0.0.1:8000/ping")
+            if response.status_code == 200:
+                self.label.setText(f"Ping: {response.json()['message']}")
+        except requests.exceptions.ConnectionError:
+            self.label.setText("Erro: API não encontrada!")
+
+    def get_status(self):
+        try:
+            response = requests.get("http://127.0.0.1:8000/status")
+            if response.status_code == 200:
+                status = response.json()
+                self.label.setText(f"Status: {status['status']}, Debug: {status['debug_mode']}")
+        except requests.exceptions.ConnectionError:
+            self.label.setText("Erro: API não encontrada!")
+
+# Inicialização da Aplicação
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        workers=1
-    )
+    # Inicia a API em um thread separado
+    api_thread = threading.Thread(target=run_api, daemon=True)
+    api_thread.start()
+
+    # Inicia a Interface Gráfica no thread principal
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
