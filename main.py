@@ -4,12 +4,15 @@ from datetime import datetime
 from settings.settings import Settings
 from src.middleware.app_middlewares import AppMiddlewares
 from src.logging.service import logger
-from src.model.instance.service import ModelInstance
+from src.model.instance.service import Model
 
-settings = Settings()
-app_middlewares = AppMiddlewares()
 from src.items.router import router as items_router
+from src.tts.router import router as tts_router
 
+
+
+app_middlewares = AppMiddlewares()
+settings = Settings()
 
 app = FastAPI(
     title="Advanced FastAPI Application",
@@ -42,7 +45,7 @@ async def get_status():
 @app.on_event("startup")
 async def startup_event():
     logger.info("Application startup...")
-    model = ModelInstance()
+    model = Model()
     model.load_model()
 
     logger.info("Model loaded successfully")
@@ -52,6 +55,8 @@ async def shutdown_event():
     logger.info("Application shutdown...")
 
 app.include_router(items_router, prefix="/api")
+app.include_router(tts_router, prefix="/api")
+
 
 # Run the application
 if __name__ == "__main__":

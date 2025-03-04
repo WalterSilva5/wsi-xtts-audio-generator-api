@@ -12,5 +12,5 @@ pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://downl
 
 echo "Install deepspeed for Linux for python 3.10.x and CUDA 11.8"
 python scripts/modeldownloader.py
-
+python3 -m spacy download pt_core_news_sm
 echo "Install complete."
