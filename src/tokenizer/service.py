@@ -25,36 +25,29 @@ def currency_parser(text):
 
 
 class Tokenizer:
-    def split_sentence_portuguese(self, text, min_length=80, max_length=130):
+    def split_sentence_portuguese(self, text, min_length=0, max_length=100):
         """Divide texto em sentenças respeitando tamanho mínimo e máximo e fluidez."""
-        
-        logger.info(f"Processando texto para divisão de sentenças: {text}")
+        logger.info(f"Processando texto: {text}")
         
         if len(text) < max_length:
-            logger.warning(f"Texto muito curto para divisão: {len(text)} (mínimo: {min_length})")
+            logger.warning(f"Texto muito curto ({len(text)} caracteres)")
             return [text]
         
-        doc = nlp(text)
         text_splits = []
+        doc = nlp(text)
         
         for sent in doc.sents:
-            sentence_str = str(sent).strip()
-            logger.info(f"Analisando sentença: '{sentence_str}'")
-
-            sentence_length = len(sentence_str)
-
-            if sentence_length <= max_length:
-                text_splits.append(sentence_str)
-            elif sentence_length > max_length:
-                intelligent_split = self.intelligent_sentence_split(sentence_str, min_length, max_length)
-                text_splits.extend(intelligent_split)
-                logger.info(f"Divisão inteligente realizada: {intelligent_split}")
+            sentence = str(sent).strip()
+            if len(sentence) <= max_length:
+                text_splits.append(sentence)
+            else:
+                splits = self.intelligent_sentence_split(sentence, min_length, max_length)
+                text_splits.extend(splits)
+                logger.info(f"Divisão inteligente: {splits}")
 
         final_splits = self.concat_sentences_with_variation(text_splits, max_length)
+        logger.info(f"Resultado final: {final_splits}")
         
-        final_splits.extend(text_splits)
-
-        logger.info(f"Texto final dividido em: {final_splits}")
         return final_splits
 
     def is_grammatically_correct(self, sentence):
