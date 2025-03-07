@@ -9,11 +9,15 @@ import tempfile
 import os
 from src.model.instance.service import Model
 from fastapi.responses import FileResponse, JSONResponse
+from typing import Optional
+import librosa
+import soundfile as sf
 
 
 class TtsDto(BaseModel):
     text: str
     speaker: str
+    rvc_speaker: Optional[str]
 
 
 router = APIRouter()
@@ -27,31 +31,47 @@ def get_model_instance():
 
 
 @router.post("/tts")
-async def generate_tts(request: TtsDto, model: Model = Depends(get_model_instance)):
-    try:
-        audio_data = model.tts(request.text, request.speaker)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+async def generate_tts(dto: TtsDto, model: Model = Depends(get_model_instance)):
+    audio_data = model.tts(dto.text, dto.speaker)
     
+    if dto.rvc_speaker:
+        rvc_file_path = "/home/wsi/repositorios/GitHub/rvc_test/rvc-cli/"
+
+        # Salvar arquivo de entrada
+        with open(rvc_file_path + "input.wav", "wb") as f:
+            f.write(audio_data)
+
+        # Executar o RVC
+        command = f"cd {rvc_file_path} && {rvc_file_path}venv/bin/python rvc_cli.py infer --input input.wav --output output.wav --pth_path ./models/{dto.rvc_speaker}.pth --index_path ./models/{dto.rvc_speaker}.index"
+        os.system(command)
+
+        # Caminho do arquivo gerado pelo RVC
+        output_file = os.path.join(rvc_file_path, "output.wav")
+
+        # Retornar diretamente o arquivo gerado pelo RVC
+        return FileResponse(
+            path=output_file,
+            media_type="audio/wav",
+            filename="tts_output.wav"
+        )
+
+    # Criar arquivo temporário
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
-        # If audio_data is bytes, write directly to file
         if isinstance(audio_data, bytes):
             temp_file.write(audio_data)
+            temp_file.flush()
         else:
-            if len(audio_data.shape) == 1:
-                audio_data = audio_data.reshape(-1, 1)
-            sf.write(temp_file.name, audio_data, 24000)
+            audio_data = audio_data.reshape(-1, 1) if len(audio_data.shape) == 1 else audio_data
+            sf.write(temp_file.name, audio_data, 24000)  # ⚠️ NÃO altera sample rate
     
-    # Return the file response with cleanup task
+    # Retornar resposta com áudio processado
     return FileResponse(
         path=temp_file.name,
         media_type="audio/wav",
         filename="tts_output.wav",
         background=BackgroundTask(os.unlink, temp_file.name)
     )
+
 
 
 @router.get("/speakers", response_model=dict)
