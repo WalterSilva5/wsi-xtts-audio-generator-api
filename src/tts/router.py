@@ -7,7 +7,7 @@ import soundfile as sf  # type: ignore
 import numpy as np
 import tempfile
 import os
-from src.model.instance.service import Model
+from src.model.service import Model
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional
 import librosa
