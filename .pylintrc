@@ -1,0 +1,14 @@
+[MASTER]
+# Ignorar diretórios virtuais comuns
+ignore=venv
+
+[MESSAGES CONTROL]
+# Desativa exigência de docstrings:
+# C0114 = missing-module-docstring
+# C0115 = missing-class-docstring
+# C0116 = missing-function-docstring
+# W0718 = broad-exception-caught (ignorar captura genérica de Exception)
+# R0903 = too-few-public-methods
+disable=C0114,C0115,C0116,W0718,R0903
+# Garante que E1101 (no-member) esteja habilitado para reportar métodos/atributos inexistentes
+enable=E1101
