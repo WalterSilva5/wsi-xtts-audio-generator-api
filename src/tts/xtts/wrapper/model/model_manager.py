@@ -50,6 +50,7 @@ class XttsModelManager:
                 self.using_gpu = True
 
             self.model = Xtts.init_from_config(config)
+            # self.model.to("cuda")
 
             print("Loading XTTS model!")
 
