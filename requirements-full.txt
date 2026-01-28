@@ -1,0 +1,51 @@
+# Full dependencies (requires Python 3.10 or 3.11)
+# Use: pip install -r requirements-full.txt
+
+# Core dependencies
+torch==2.1.1
+torchaudio==2.1.1
+coqui-tts[languages]==0.24.2
+PySide6>=6.6.0
+soundfile
+pydub
+ffmpeg-python
+loguru
+omegaconf==2.3.0
+requests
+
+# Audio processing
+noisereduce
+pedalboard
+resampy==0.4.2
+
+# Language support
+pypinyin
+hangul_romanize
+langid
+
+# Japanese language support
+cutlet
+fugashi[unidic-lite]
+
+# Advanced audio analysis
+praat-parselmouth==0.4.2
+pyworld
+torchcrepe
+
+# Voice conversion (RVC)
+faiss-cpu
+
+# Translation features
+translators
+spacy
+deepl
+pysubs2
+
+# Other
+faster-whisper
+gradio
+silero-tts
+tabulate==0.8.10
+
+# Build tools
+pyinstaller>=6.3.0

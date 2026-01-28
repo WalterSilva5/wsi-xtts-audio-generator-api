@@ -102,6 +102,17 @@ class XttsModelManager:
         """Returns the loaded model instance"""
         return self.model
 
+    def is_loaded(self) -> bool:
+        """Returns whether the model is loaded"""
+        return self.model is not None
+
+    @property
+    def device(self) -> str:
+        """Returns the device the model is running on"""
+        if self.config and hasattr(self.config, 'device'):
+            return self.config.device
+        return "cpu"
+
     def get_info(self) -> Dict[str, Any]:
         """Returns information about the model state"""
         return {

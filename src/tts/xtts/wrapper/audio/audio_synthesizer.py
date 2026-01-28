@@ -77,7 +77,18 @@ class AudioSynthesizer:
         
 
     def _get_audio(self, dto: TtsDto, gpt_cond_latent: Any, speaker_embedding: Any) -> np.ndarray:
-        """Generates audio from text by processing it sentence by sentence"""
+        """Generates audio from text by processing it sentence by sentence.
+
+        Uses synthesis parameters from dto with sensible defaults:
+        - temperature: Controls randomness (0.0-1.0, default 0.65)
+        - length_penalty: Penalty for longer sequences (0.5-2.0, default 1.0)
+        - repetition_penalty: Penalty for repetition (1.0-20.0, default 12.0)
+        - top_k: Top-K sampling (1-100, default 35)
+        - top_p: Nucleus sampling threshold (0.0-1.0, default 0.75)
+        - speed: Speech speed multiplier (0.5-2.0, default 0.95)
+        - do_sample: Enable sampling (default True)
+        - enable_text_splitting: Enable text splitting (default True)
+        """
         model = self.tts_processor.get_model()
         if model is None:
             raise Exception("Model is not loaded")
@@ -103,14 +114,14 @@ class AudioSynthesizer:
                 language=dto.lang_code,
                 gpt_cond_latent=gpt_cond_latent,
                 speaker_embedding=speaker_embedding,
-                temperature=0.65,      # Reduced for more stable output
-                length_penalty=1.0,    # Increased to better handle longer sentences
-                repetition_penalty=12.0,  # Increased to reduce voice artifacts
-                top_k=35,             # Reduced for more consistent voice
-                top_p=0.75,           # Reduced for better stability
-                do_sample=True,       # Enable sampling for more natural output
-                speed=0.95,           # Slightly slower for better articulation
-                enable_text_splitting=True  # Enable text splitting for long sentences
+                temperature=dto.temperature,
+                length_penalty=dto.length_penalty,
+                repetition_penalty=dto.repetition_penalty,
+                top_k=dto.top_k,
+                top_p=dto.top_p,
+                do_sample=dto.do_sample,
+                speed=dto.speed,
+                enable_text_splitting=dto.enable_text_splitting
             )
 
             split_type = self.get_split_type(sentence)

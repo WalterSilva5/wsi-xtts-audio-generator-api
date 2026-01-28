@@ -5,18 +5,28 @@ from src.middleware.app_middlewares import AppMiddlewares
 from src.tts.xtts.manager.tts_manager import TtsManager
 
 from src.routers.tts_router import router as tts_router
+from src.routers.health_router import router as health_router
+from src.routers.queue_router import router as queue_router
+from src.queue import start_consumer, stop_consumer
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting app")
-    #TODO load model]
     print("Loading model...")
     tts_manager = TtsManager()
     tts_manager.model.load_model()
     print(f"lifespan instance id: {id(tts_manager)}")
     print("Model loaded")
+
+    print("Starting queue consumer...")
+    start_consumer()
+    print("Queue consumer started")
+
     yield
+
+    print("Stopping queue consumer...")
+    stop_consumer()
     print("Stopping app")
     print("App finished")
 
@@ -39,6 +49,8 @@ app_middlewares.apply_cors_middlewares(app)
 app_middlewares.apply_exception_handlers(app)
 
 app.include_router(tts_router)
+app.include_router(health_router)
+app.include_router(queue_router)
 
 
 if __name__ == "__main__":

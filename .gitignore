@@ -179,3 +179,5 @@ cython_debug/
 
 *.pth
 ./models/*
+.claude
+nul

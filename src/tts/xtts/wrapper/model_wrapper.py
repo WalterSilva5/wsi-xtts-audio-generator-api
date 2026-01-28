@@ -63,11 +63,12 @@ class ModelWrapper(Observable):
         return self.model_manager.get_info()
 
     def list_speakers(self) -> List[str]:
-        """Lists available speakers"""
+        """Lists available speaker names"""
         if self.embedding_manager is None:
             self.app.logger.warning("Embedding manager not initialized")
             return []
-        return self.embedding_manager.list_speakers()
+        # Return speaker names from loaded embeddings
+        return list(self.embedding_manager._embeddings.keys())
 
     def synthesize_audio(self, dto: TtsDto) -> np.ndarray:
         """Synthesizes audio from text"""
