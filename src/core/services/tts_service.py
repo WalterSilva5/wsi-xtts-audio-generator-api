@@ -13,6 +13,8 @@ import os
 import numpy as np
 import torch
 
+from src.modules.system.torch_util import gpu_is_available, empty_cache
+
 from src.core.models.tts_request import (
     SynthesisRequest,
     SynthesisResult,
@@ -95,8 +97,8 @@ class TTSService:
                 gc.collect()
 
                 # Clear CUDA cache if available
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
+                if gpu_is_available():
+                    empty_cache()
 
                 self._is_model_loaded = False
                 logger.info("Model unloaded successfully")

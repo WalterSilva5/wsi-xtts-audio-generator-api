@@ -25,10 +25,20 @@ Aplicação de síntese de voz (Text-to-Speech) baseada no modelo [XTTS v2](http
 ## Requisitos
 
 - Python 3.9 ou 3.10
-- CUDA 11.8 (para aceleração GPU)
 - FFmpeg
 - 8GB+ RAM (16GB recomendado)
 - GPU com 6GB+ VRAM (opcional, mas recomendado)
+
+### Suporte a GPU
+
+A aplicação suporta tanto GPUs **NVIDIA** (CUDA) quanto **AMD** (ROCm).
+
+| Fabricante | Backend | Versão Recomendada |
+|----------|---------|----------------|
+| NVIDIA | CUDA | 11.8 ou 12.1 |
+| AMD | ROCm | 7.1 ou 7.2 |
+
+O tipo de GPU é selecionado automaticamente durante a instalação.
 
 ## Instalação
 
@@ -85,10 +95,19 @@ venv\Scripts\activate
 
 #### 3. Instale as dependências
 
+**NVIDIA (padrão):**
 ```bash
 pip install -r requirements.txt
 pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118
 ```
+
+**AMD (ROCm):**
+```bash
+pip install -r requirements.txt
+pip install torch==2.8.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm7.1
+```
+
+> Nota: Para AMD, certifique-se de ter o ROCm 7.1+ instalado no sistema.
 
 #### 4. Baixe os modelos
 
@@ -507,6 +526,9 @@ SAMPLE_RATE=24000
 
 # Servidor
 PORT=8880
+
+# GPU (nvidia ou amd)
+GPU_TYPE=nvidia
 
 # Modelo
 DEVICE=gpu

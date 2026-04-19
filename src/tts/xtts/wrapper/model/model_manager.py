@@ -7,6 +7,7 @@ from TTS.tts.configs.xtts_config import XttsConfig  # type: ignore
 from TTS.tts.models.xtts import Xtts  # type: ignore
 from src.core.application import Application
 from src.tts.xtts.wrapper.model_wrapper_paths import ModelWrapperPaths
+from src.modules.system.torch_util import gpu_is_available
 
 class XttsModelManager:
     """Responsible for managing the lifecycle of the XTTS model"""
@@ -44,7 +45,7 @@ class XttsModelManager:
             config = XttsConfig()
             config.load_json(self.model_paths.config_file)
 
-            gpu_available = torch.cuda.is_available()
+            gpu_available = gpu_is_available()
             if gpu_available:
                 config.device = "cuda"
                 self.using_gpu = True

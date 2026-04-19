@@ -14,6 +14,18 @@ from scripts.utils.tokenizer import multilingual_cleaners
 import torch
 import torchaudio
 # torch.set_num_threads(1)
+import sys
+from pathlib import Path
+
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from src.modules.system.torch_util import gpu_is_available
+except Exception:
+    def gpu_is_available():
+        try:
+            return torch.cuda.is_available()
+        except Exception:
+            return False
 
 
 torch.set_num_threads(16)
@@ -74,7 +86,7 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
         print("Existing language matches target language")
 
     # Loading Whisper
-    device = "cuda" if torch.cuda.is_available() else "cpu" 
+    device = "cuda" if gpu_is_available() else "cpu" 
 
     print("Loading Whisper Model!")
     asr_model = WhisperModel(whisper_model, device=device, compute_type="float16")

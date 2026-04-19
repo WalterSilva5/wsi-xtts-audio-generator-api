@@ -10,6 +10,17 @@ import shutil
 import uuid
 from pathlib import Path
 import subprocess
+import sys
+
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from src.modules.system.torch_util import gpu_is_available
+except Exception:
+    def gpu_is_available():
+        try:
+            return torch.cuda.is_available()
+        except Exception:
+            return False
 
 import soundfile as sf
 import noisereduce
@@ -223,10 +234,12 @@ def save_audio(out_folder, file_name, rate, audio_data):
 
 
 def clear_gpu_cache():
-    # del model
     gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    try:
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except Exception:
+        pass
 
 
 def resemble_enhance_audio(audio_path,
@@ -243,7 +256,7 @@ def resemble_enhance_audio(audio_path,
     if audio_path is None:
         return None, None
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if gpu_is_available() else 'cpu'
 
     dwav, orig_sr = torchaudio.load(audio_path)
     dwav = dwav.mean(dim=0).to(device)

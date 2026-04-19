@@ -13,6 +13,9 @@ from scripts.modeldownloader import download_model, check_tts_version
 
 from loguru import logger
 import os
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+from src.modules.system.torch_util import gpu_is_available, empty_cache
 import time
 import re
 
@@ -53,7 +56,7 @@ class TTSWrapper:
         # If the user has chosen what to use, we rewrite the value to the value we want to use
         self.cuda = device
         self.device = 'cpu' if lowvram else (
-            self.cuda if torch.cuda.is_available() else "cpu")
+            self.cuda if gpu_is_available() else "cpu")
         # Store whether we want to run in low VRAM mode.
         self.lowvram = lowvram
 
@@ -78,7 +81,7 @@ class TTSWrapper:
     def unload_model(self):
         self.model = None
         self.model_loaded = False
-        torch.cuda.empty_cache()
+        empty_cache()
         logger.info("Model unloaded")
 
     def load_model(self, this_dir):
@@ -131,7 +134,7 @@ class TTSWrapper:
 
     def switch_model_device(self):
         # We check for lowram and the existence of cuda
-        if self.lowvram and torch.cuda.is_available() and self.cuda != "cpu":
+        if self.lowvram and gpu_is_available() and self.cuda != "cpu":
             with torch.no_grad():
                 if self.device == self.cuda:
                     self.device = "cpu"
@@ -142,7 +145,7 @@ class TTSWrapper:
 
             if self.device == 'cpu':
                 # Clearing the cache to free up VRAM
-                torch.cuda.empty_cache()
+                empty_cache()
 
     def get_or_create_latents(self, speaker_wav):
         if speaker_wav not in self.latents_cache:

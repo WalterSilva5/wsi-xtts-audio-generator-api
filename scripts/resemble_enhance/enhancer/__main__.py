@@ -6,6 +6,17 @@ from pathlib import Path
 import torch
 import torchaudio
 from tqdm import tqdm
+import sys
+
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+    from src.modules.system.torch_util import gpu_is_available
+except Exception:
+    def gpu_is_available():
+        try:
+            return torch.cuda.is_available()
+        except Exception:
+            return False
 
 from .inference import denoise, enhance
 
@@ -73,7 +84,7 @@ def main():
 
     device = args.device
 
-    if device == "cuda" and not torch.cuda.is_available():
+    if device == "cuda" and not gpu_is_available():
         print("CUDA is not available but --device is set to cuda, using CPU instead")
         device = "cpu"
 

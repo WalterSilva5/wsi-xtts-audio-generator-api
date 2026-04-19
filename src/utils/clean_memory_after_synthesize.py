@@ -1,6 +1,7 @@
 import gc
 import ctypes
 from src.core.application import Application
+from src.modules.system.torch_util import gpu_is_available, empty_cache
 
 app = Application()
 
@@ -9,8 +10,8 @@ def cleanup_memory_after_synthesize():
         collected = gc.collect()
         try:
             import torch
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+            if gpu_is_available():
+                empty_cache()
         except ImportError:
             app.logger.info("PyTorch not installed. Skipping PyTorch memory cleanup.")
         except Exception as e:

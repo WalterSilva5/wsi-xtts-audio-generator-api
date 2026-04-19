@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from src.modules.system.torch_util import gpu_is_available, get_gpu_type
 
 router = APIRouter(tags=["health"])
 
@@ -68,6 +69,8 @@ async def readiness_check():
 async def system_info():
     """Get system information including GPU status."""
     memory = psutil.virtual_memory()
+    gpu_type = get_gpu_type()
+    is_gpu_available = gpu_is_available()
 
     info = SystemInfoResponse(
         platform=platform.system(),
@@ -76,16 +79,19 @@ async def system_info():
         memory_total_gb=round(memory.total / (1024**3), 2),
         memory_available_gb=round(memory.available / (1024**3), 2),
         memory_percent_used=memory.percent,
-        gpu_available=torch.cuda.is_available()
+        gpu_available=is_gpu_available
     )
 
-    if torch.cuda.is_available():
-        info.gpu_name = torch.cuda.get_device_name(0)
-        info.cuda_version = torch.version.cuda
-        gpu_props = torch.cuda.get_device_properties(0)
-        info.gpu_memory_total_gb = round(gpu_props.total_memory / (1024**3), 2)
-
-        free_memory, total_memory = torch.cuda.mem_get_info(0)
-        info.gpu_memory_free_gb = round(free_memory / (1024**3), 2)
+    if is_gpu_available:
+        if gpu_type == "amd":
+            info.gpu_name = "AMD GPU"
+            info.cuda_version = torch.version.hip if hasattr(torch.version, 'hip') else "ROCm"
+        else:
+            info.gpu_name = torch.cuda.get_device_name(0)
+            info.cuda_version = torch.version.cuda
+            gpu_props = torch.cuda.get_device_properties(0)
+            info.gpu_memory_total_gb = round(gpu_props.total_memory / (1024**3), 2)
+            free_memory, total_memory = torch.cuda.mem_get_info(0)
+            info.gpu_memory_free_gb = round(free_memory / (1024**3), 2)
 
     return info

@@ -8,6 +8,28 @@ from torch.nn.utils.parametrize import remove_parametrizations
 from torchaudio.functional import resample
 from torchaudio.transforms import MelSpectrogram
 from tqdm import trange
+import sys
+from pathlib import Path
+
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from src.modules.system.torch_util import gpu_is_available, empty_cache, synchronize
+except Exception:
+    def gpu_is_available():
+        try:
+            return torch.cuda.is_available()
+        except Exception:
+            return False
+    def empty_cache():
+        try:
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
+    def synchronize():
+        try:
+            torch.cuda.synchronize()
+        except Exception:
+            pass
 
 from .hparams import HParams
 
@@ -139,8 +161,8 @@ def inference(model, dwav, sr, device, chunk_seconds: float = 30.0, overlap_seco
     del sr  # We are now using hp.wav_rate as the sampling rate
     sr = hp.wav_rate
 
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
+    if gpu_is_available():
+        synchronize()
 
     start_time = time.perf_counter()
 
@@ -166,8 +188,8 @@ def inference(model, dwav, sr, device, chunk_seconds: float = 30.0, overlap_seco
     # Clean up chunks to free memory after merging
     
     del chunks[:]
-    if torch.cuda.is_available():
-         torch.cuda.empty_cache()
+    if gpu_is_available():
+         empty_cache()
 
     gc.collect()  # Explicitly call garbage collector again
 

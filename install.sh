@@ -18,6 +18,9 @@ PYTHON_VERSION="3.10"
 MODEL_VERSION="v2.0.3"
 TORCH_VERSION="2.1.1"
 CUDA_VERSION="cu118"
+ROCM_VERSION="rocm7.1"
+PYTORCH_INDEX_URL="https://download.pytorch.org/whl/${CUDA_VERSION}"
+GPU_TYPE=""
 
 # =============================================================================
 # Functions
@@ -45,6 +48,39 @@ print_error() {
 
 print_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+detect_gpu_type() {
+    if command -v rocm-smi &> /dev/null; then
+        echo "amd"
+    elif command -v nvidia-smi &> /dev/null; then
+        echo "nvidia"
+    else
+        echo "unknown"
+    fi
+}
+
+select_gpu_type() {
+    echo ""
+    echo -e "${BLUE}=============================================="
+    echo "  Select GPU Type"
+    echo "==============================================${NC}"
+    echo ""
+    echo "Detected GPUs:"
+    echo "  1) NVIDIA (CUDA)"
+    echo "  2) AMD (ROCm)"
+    echo ""
+    echo -n "Select option [1-2]: "
+    read -r choice
+
+    case "$choice" in
+        1) GPU_TYPE="nvidia" ;;
+        2) GPU_TYPE="amd" ;;
+        *) GPU_TYPE="nvidia" ;;
+    esac
+
+    echo -e "${GREEN}Selected: ${GPU_TYPE}${NC}"
+    echo ""
 }
 
 check_command() {
@@ -126,10 +162,21 @@ print_step "Installing Python dependencies..."
 
 pip install -r requirements.txt
 
-print_step "Installing PyTorch with CUDA ${CUDA_VERSION}..."
+select_gpu_type
 
-pip install torch==${TORCH_VERSION}+${CUDA_VERSION} torchaudio==${TORCH_VERSION}+${CUDA_VERSION} \
-    --index-url https://download.pytorch.org/whl/${CUDA_VERSION}
+print_step "Installing PyTorch..."
+
+if [ "$GPU_TYPE" = "amd" ]; then
+    print_step "Installing PyTorch with ROCm ${ROCM_VERSION}..."
+    pip install torch==${TORCH_VERSION} torchvision torchaudio \
+        --index-url https://download.pytorch.org/whl/${ROCM_VERSION}
+    print_success "PyTorch with ROCm installed"
+else
+    print_step "Installing PyTorch with CUDA ${CUDA_VERSION}..."
+    pip install torch==${TORCH_VERSION}+${CUDA_VERSION} torchaudio==${TORCH_VERSION}+${CUDA_VERSION} \
+        --index-url https://download.pytorch.org/whl/${CUDA_VERSION}
+    print_success "PyTorch with CUDA installed"
+fi
 
 echo ""
 
