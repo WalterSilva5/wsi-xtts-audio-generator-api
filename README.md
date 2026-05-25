@@ -33,12 +33,18 @@ Aplicação de síntese de voz (Text-to-Speech) baseada no modelo [XTTS v2](http
 
 A aplicação suporta tanto GPUs **NVIDIA** (CUDA) quanto **AMD** (ROCm).
 
-| Fabricante | Backend | Versão Recomendada |
+| Fabricante | Backend | Wheel / Versão recomendada |
 |----------|---------|----------------|
-| NVIDIA | CUDA | 11.8 ou 12.1 |
-| AMD | ROCm | 7.1 ou 7.2 |
+| NVIDIA | CUDA | `cu118` (torch 2.1.1) |
+| AMD | ROCm | `rocm6.4` (torch 2.8.0) — testado com RX 9060 XT (RDNA4) |
 
 O tipo de GPU é selecionado automaticamente durante a instalação.
+
+> **AMD:** as wheels `torch+rocm` já embutem o runtime ROCm, então **não** é
+> preciso instalar o ROCm do sistema — basta o driver de kernel `amdgpu` e acesso
+> a `/dev/kfd` e `/dev/dri/renderD*`. Para placas **RDNA4** (RX 90xx) use
+> `rocm6.4` ou mais novo (`rocm6.3` não reconhece essas GPUs). Em Linux nativo
+> **não é necessário WSL2**. Guia completo: [docs/AMD_GPU_EXECUTION_PLAN.md](docs/AMD_GPU_EXECUTION_PLAN.md).
 
 ## Instalação
 
@@ -104,10 +110,14 @@ pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://downl
 **AMD (ROCm):**
 ```bash
 pip install -r requirements.txt
-pip install torch==2.8.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm7.1
+pip install torch==2.8.0+rocm6.4 torchvision==0.23.0+rocm6.4 torchaudio==2.8.0+rocm6.4 \
+  --index-url https://download.pytorch.org/whl/rocm6.4
 ```
 
-> Nota: Para AMD, certifique-se de ter o ROCm 7.1+ instalado no sistema.
+> Nota: a wheel `+rocm6.4` já inclui o runtime ROCm — não é preciso instalar o
+> ROCm do sistema. Garanta apenas o driver `amdgpu` e acesso a `/dev/kfd`.
+> Para RDNA4 (RX 90xx) use `rocm6.4`+ (o `rocm6.3` não reconhece essas placas).
+> Veja o guia detalhado em [docs/AMD_GPU_EXECUTION_PLAN.md](docs/AMD_GPU_EXECUTION_PLAN.md).
 
 #### 4. Baixe os modelos
 
@@ -542,6 +552,12 @@ SPEAKERS_FILE=speakers_xtts.pth
 # Speakers
 SAMPLE_SPEAKERS_FOLDER=speakers/
 ```
+
+> **Atenção (`GPU_TYPE`):** esta variável é lida do **ambiente** (`os.environ`),
+> não do `.env`. Para forçar AMD, exporte-a ao executar:
+> `GPU_TYPE=amd python main.py`. Sem isso, o tipo cai no default `nvidia` apenas
+> para fins de *report* do `/health/system` (a inferência ainda usa a GPU detectada
+> via `torch.version.hip`).
 
 ## Estrutura do Projeto
 

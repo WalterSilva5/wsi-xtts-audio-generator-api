@@ -192,12 +192,20 @@ class TTSService:
                 error_message=str(e)
             )
 
-    def _bytes_to_numpy(self, audio_bytes: io.BytesIO) -> Optional[np.ndarray]:
-        """Convert audio bytes (WAV) to numpy array."""
+    def _bytes_to_numpy(self, audio_bytes) -> Optional[np.ndarray]:
+        """Convert audio (WAV) to numpy array.
+
+        Accepts raw ``bytes``/``bytearray`` (as returned by the synthesizer) or a
+        file-like object such as ``io.BytesIO``.
+        """
         try:
             import soundfile as sf
 
-            audio_bytes.seek(0)
+            if isinstance(audio_bytes, (bytes, bytearray)):
+                audio_bytes = io.BytesIO(audio_bytes)
+            else:
+                audio_bytes.seek(0)
+
             audio_data, _ = sf.read(audio_bytes)
 
             # Ensure float32

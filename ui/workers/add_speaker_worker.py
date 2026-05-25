@@ -33,7 +33,7 @@ class AddSpeakerWorker(BaseWorker):
         try:
             self.progress.emit(0, "Starting...")
 
-            if self._cancelled:
+            if self.is_cancelled():
                 self.finished.emit(False, "Cancelled")
                 return
 
@@ -53,5 +53,5 @@ class AddSpeakerWorker(BaseWorker):
 
     def _on_progress(self, percent: int, message: str) -> None:
         """Handle progress updates from the service."""
-        if not self._cancelled:
+        if not self.is_cancelled():
             self.progress.emit(percent, message)
