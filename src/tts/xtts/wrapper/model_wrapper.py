@@ -70,8 +70,8 @@ class ModelWrapper(Observable):
         # Return speaker names from loaded embeddings
         return list(self.embedding_manager._embeddings.keys())
 
-    def synthesize_audio(self, dto: TtsDto) -> np.ndarray:
-        """Synthesizes audio from text"""
+    def synthesize_audio(self, dto: TtsDto) -> bytes:
+        """Synthesizes audio from text and returns WAV bytes."""
         return self._audio_synthesizer.synthesize(dto)
 
     def reload_all_speaker_embeddings(self) -> None:
